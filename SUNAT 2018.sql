@@ -26,7 +26,7 @@ SELECT  maxfecha_reporte.numerocuenta,
             GROUP BY ca.numerocuenta, codigopersona, ca.tablaservicio, tipopersona, codigodireccion, codigopais) maxfecha_reporte
         ON ca.numerocuenta = maxfecha_reporte.numerocuenta AND maxfecha_reporte.maxfecha = ca.fecha
 
-	INNER JOIN (SELECT  canexo_reporte.codigopersona
+	INNER JOIN (SELECT  canexo_reporte.codigopersona,
 						SUM(canexo_reporte.saldoimporte1) AS SALDOFINAL,
 						SUM(canexo_reporte.interestotal) AS INTERESTOTAL,
 						SUM(canexo_reporte.saldopromedio) AS SALDOPROMEDIO,
