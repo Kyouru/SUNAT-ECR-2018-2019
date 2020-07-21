@@ -5,13 +5,10 @@
 --Cuentas de alto valor
 ----"Saldo al final del periodo" o "Saldo promedio del periodo" o "Saldo Maximo del periodo" o "ABS(Abono - Cargo)" o  "Intereses acumulado no cobrados" >= 1,000,000.00
 
-
-
 SELECT	maxfecha_reporte.numerocuenta,
 		maxfecha_reporte.codigopersona,
 		maxfecha_reporte.tablaservicio,
 		maxfecha_reporte.tipopersona,
-		--maxfecha_reporte.codigodireccion,
 		pkg_direccion.f_obt_tipovia(maxfecha_reporte.codigodireccion)||' '||TRIM(pkg_direccion.f_obt_callenumero(maxfecha_reporte.codigodireccion))||'  '||
 		DECODE(TRIM(pkg_direccion.f_obt_numeropuerta(maxfecha_reporte.codigodireccion)),NULL,NULL,'Nro.:'||TRIM(pkg_direccion.f_obt_numeropuerta(maxfecha_reporte.codigodireccion)))||' '||
 		DECODE(TRIM(pkg_direccion.f_obt_manzana(maxfecha_reporte.codigodireccion)),NULL,NULL,'Mz.:'||' '||TRIM(pkg_direccion.f_obt_manzana(maxfecha_reporte.codigodireccion)))||' '||
@@ -108,7 +105,6 @@ SELECT	maxfecha_reporte.numerocuenta,
 							WHERE TRUNC(fecha) <= TO_DATE('31/12/2018','DD/MM/YYYY')									--Hasta el 31/12/2018
 									AND (cuenta_reporte.tablaservicio = 101 OR cuenta_reporte.tablaservicio = 102)		--Cuentas de Ahorro y CDE
 									AND tipopersona = 1																	--Solo Personas Naturales
-									--AND TRUNC(fecha) >= TO_DATE('01/10/2018','DD/MM/YYYY')								--Para Pruebas, solo cuentas que estuvieron activas a partir en 01/10/2018
 							GROUP BY cuenta_reporte.codigopersona, ca.numerocuenta, cuenta_reporte.moneda, cuenta_reporte.estado, fechaapertura) maxfecha_reporte
 						ON ca.numerocuenta = maxfecha_reporte.numerocuenta AND maxfecha_reporte.maxfecha = ca.fecha) canexo_reporte
 					ON apo.numerocuenta = canexo_reporte.numerocuenta
