@@ -1,3 +1,19 @@
+
+--No domiciliadas (no Peru y en la lista de paises reportables)
+
+--Cuentas Nuevas del 2019
+----Sin Umbral
+----PN
+----PJ
+------Personas que controlan
+--------Gerente General
+--------Accionistas
+
+--Cuentas de las personas reportadas 2018
+----Saldo al 2019
+----Direccion al 2019
+--
+
 SELECT DISTINCT 'OECD1' cDocTypeIndic, 'PE2019PE2011106501300001' || LPAD(ROW_NUMBER() OVER(ORDER BY numerocuenta ASC),5,'0') AS cDocRefId, numerocuenta cAccountNumber, 'OECD605' cTypeAccountNumber,
 CAST(NULL AS VARCHAR2(100)) cUndocumentedAccount, CAST(NULL AS VARCHAR2(100)) cClosedAccount, CAST(NULL AS VARCHAR2(100)) cDormantAccount, --Falta rellenar valores con el estado de la cuenta linea 41
 CASE tipopersona WHEN 1 THEN 'Individual' ELSE 'Organisation' END cTypeHolder, upper(pkg_syst900.f_obt_tbldesabr(3, codigopais)) cResCountryCode, CAST(NULL AS VARCHAR2(100)) cTIN, CAST(NULL AS VARCHAR2(100)) cTIN_IssuedBy,
@@ -9,7 +25,7 @@ pkg_personanatural.f_obt_fechacumpleanos(codigopersona) cBirthDate, CAST(NULL AS
 -- CtrlgPersonType
 CASE tipovinculo
 WHEN 1 THEN 'CRS803' --GERENTE GENERAL
-WHEN 79 THEN 'CRS803' --ACCIONISTA
+WHEN 79 THEN 'CRS801' --ACCIONISTA
 ELSE NULL
 END cCtrlgPersonType,
 
@@ -37,7 +53,6 @@ FROM (
 			UPPER(pkg_direccion.f_obt_descprovincia(cta_max_reporte.codigodireccion))||' - '||
 			UPPER(pkg_direccion.f_obt_descdistrito(cta_max_reporte.codigodireccion)) AS direccion,
 			cta_max_reporte.codigopais,
-			cta_max_reporte.maxfecha,
 			cta_max_reporte.estado,
 			cta_max_reporte.moneda,
 			CASE WHEN cta_max_reporte.moneda=1 THEN cta_max_reporte.saldoimporte1 ELSE cta_max_reporte.saldoimporte1*GEN05200('31/12/2019', 3, 3) END AS salcon_soles,
@@ -92,14 +107,115 @@ FROM (
 						AND (cuenta_reporte.tablaservicio = 101 OR cuenta_reporte.tablaservicio = 102)
 					GROUP BY ca.numerocuenta, codigopersona, ca.tablaservicio, cuenta_reporte.estado, tipopersona, codigodireccion, codigopais) maxfecha_reporte
 				ON ca.numerocuenta = maxfecha_reporte.numerocuenta AND maxfecha_reporte.maxfecha = ca.fecha) cta_max_reporte
-	LEFT JOIN (SELECT pjv.codigopersona, pjv.personavinculada, pjv.tipovinculo, maxdir2019.codigodireccion
-				FROM personajurvinculada pjv 
-				INNER JOIN (SELECT codigopersona, max(pd.codigodireccion) codigodireccion FROM personadireccion_20191231 pd 
-							WHERE pd.tipodireccion = 1 AND pd.enviocorreo ='S' 
-							GROUP BY codigopersona) maxdir2019
-				ON pjv.codigopersona = maxdir2019.codigopersona) pjv
-	ON pjv.codigopersona = cta_max_reporte.codigopersona
-	WHERE (pjv.tipovinculo = 1 OR pjv.tipovinculo = 79 OR pjv.tipovinculo IS NULL)
+		LEFT JOIN (SELECT pjv.codigopersona, pjv.personavinculada, pjv.tipovinculo, maxdir2019.codigodireccion
+					FROM personajurvinculada pjv 
+					INNER JOIN (SELECT codigopersona, max(pd.codigodireccion) codigodireccion FROM personadireccion_20191231 pd 
+								WHERE pd.tipodireccion = 1 AND pd.enviocorreo ='S'
+								GROUP BY codigopersona) maxdir2019
+					ON pjv.codigopersona = maxdir2019.codigopersona) pjv
+		ON pjv.codigopersona = cta_max_reporte.codigopersona
+		WHERE (pjv.tipovinculo = 1 OR pjv.tipovinculo = 79 OR pjv.tipovinculo IS NULL)
+		)
 
-	-- Falta 2018
+		UNION ALL
+
+	-- PN 2018 maxcuentas2018
+		(
+		SELECT 	maxcuentas2018.numerocuenta,
+				maxcuentas2018.codigopersona,
+				maxcuentas2018.tablaservicio,
+				1,									--Tipo Persona
+				maxcuentas2018.codigodireccion,
+				maxcuentas2018.codigopais,
+				maxcuentas2018.maxfecha,
+				maxcuentas2018.estado,
+				maxcuentas2018.moneda,
+				ca.saldoimporte1,
+				ca.interestotal
+		FROM captacionanexo ca
+			INNER JOIN (SELECT ca.numerocuenta, cuentas2018.codigopersona, cuentas2018.tablaservicio, cuentas2018.estado, cuentas2018.moneda, cuentas2018.codigodireccion, cuentas2018.codigopais, MAX(fecha) as maxfecha FROM captacionanexo ca
+				INNER JOIN (SELECT cc.numerocuenta, cc.codigopersona, cc.tablaservicio, cc.estado, cc.moneda, codper2018.codigodireccion, codper2018.codigopais FROM cuentacorriente cc
+					INNER JOIN (SELECT perdir2019.codigopersona, perdir2019.codigodireccion, codigopais FROM personadireccion_20191231 perdir2019
+						INNER JOIN (SELECT codigopersona, max(pd.codigodireccion) codigodireccion FROM personadireccion_20191231 pd 
+									WHERE pd.tipodireccion = 1 AND pd.enviocorreo ='S' 
+									GROUP BY codigopersona) maxperdir2019
+						ON perdir2019.codigopersona = maxperdir2019.codigopersona
+							AND perdir2019.codigodireccion = maxperdir2019.codigodireccion
+							INNER JOIN (SELECT codigodireccion, codigopais FROM direccion_20191231 dir2019
+								INNER JOIN (SELECT tbl_pais.TBLCODARG FROM t_wdd_paises auxpais
+									INNER JOIN (SELECT TBLCODARG, UPPER(TBLDESCRI) AS nom_pais FROM syst900 WHERE tblcodtab = 3) tbl_pais
+									ON auxpais.pais_dp = tbl_pais.nom_pais WHERE marca='X') pais_reporte
+								ON dir2019.codigopais = pais_reporte.TBLCODARG) dir_reporte
+							ON perdir2019.codigodireccion = dir_reporte.codigodireccion
+						RIGHT JOIN
+						(SELECT codigopersona FROM 
+											(SELECT	canexo_reporte.codigopersona,
+													SUM(CASE WHEN canexo_reporte.moneda=2 THEN canexo_reporte.saldoimporte1 ELSE canexo_reporte.saldoimporte1/GEN05200('31/12/2018', 3, 3) END) AS SALDOFINAL,
+													SUM(CASE WHEN canexo_reporte.moneda=2 THEN canexo_reporte.interestotal ELSE canexo_reporte.interestotal/GEN05200('31/12/2018', 3, 3) END) AS INTERESTOTAL,
+													SUM(CASE WHEN canexo_reporte.moneda=2 THEN canexo_reporte.saldopromedio ELSE canexo_reporte.saldopromedio/GEN05200('31/12/2018', 3, 3) END) AS SALDOPROMEDIO,
+													ABS(SUM(CASE 	WHEN canexo_reporte.moneda=2 THEN
+																		CASE WHEN MOD(tipomovimiento, 2)=0 THEN
+																			IMPORTE1*(-1)
+																		ELSE
+																			IMPORTE1
+																		END
+																	ELSE
+																		CASE WHEN MOD(tipomovimiento, 2)=0 THEN
+																			(IMPORTE1*(-1))/GEN05200('31/12/2018', 3, 3)
+																		ELSE 
+																			IMPORTE1/GEN05200('31/12/2018', 3, 3)
+																		END
+															END
+													)) AS SALDOACUMULADO,
+													SUM(CASE WHEN canexo_reporte.moneda=2 THEN canexo_reporte.saldomaximo ELSE canexo_reporte.saldomaximo/GEN05200('31/12/2018', 3, 3) END) AS SALDOMAXIMO
+											FROM aportes apo
+											RIGHT JOIN
+												(SELECT	maxfecha_reporte.codigopersona,
+														maxfecha_reporte.numerocuenta,
+														maxfecha_reporte.saldopromedio,
+														maxfecha_reporte.moneda,
+														maxfecha_reporte.estado,
+														maxfecha_reporte.saldomaximo,
+														ca.saldoimporte1,
+														ca.interestotal
+												FROM captacionanexo ca
+												INNER JOIN (SELECT cuenta_reporte.codigopersona, ca.numerocuenta, cuenta_reporte.moneda, cuenta_reporte.estado, TRUNC(fechaapertura) AS fechaapertura, SUM(saldoimporte1)/(MAX(fecha) - fechaapertura) AS saldopromedio, MAX(saldoimporte1) AS saldomaximo, MAX(fecha) AS maxfecha
+													FROM captacionanexo ca
+													INNER JOIN (SELECT numerocuenta, cc.moneda, cc.estado, cc.codigopersona, cc.tablaservicio, tipopersona, codigodireccion, codigopais from cuentacorriente cc
+														INNER JOIN (SELECT per.codigopersona, per.tipopersona, codigodireccion, codigopais from persona per
+															INNER JOIN (SELECT perdir2018.codigopersona, perdir2018.codigodireccion, codigopais FROM personadireccion_20181231 perdir2018
+																INNER JOIN (SELECT codigopersona, max(pd.codigodireccion) codigodireccion FROM personadireccion_20181231 pd 
+																			WHERE pd.tipodireccion = 1 AND pd.enviocorreo ='S' 
+																			GROUP BY codigopersona) maxperdir2018
+																ON perdir2018.codigopersona = maxperdir2018.codigopersona
+																	AND perdir2018.codigodireccion = maxperdir2018.codigodireccion
+																	INNER JOIN (SELECT codigodireccion, codigopais FROM direccion_20181231 dir2018
+																		INNER JOIN (SELECT tbl_pais.TBLCODARG FROM t_wdd_paises auxpais
+																			INNER JOIN (SELECT TBLCODARG, UPPER(TBLDESCRI) AS nom_pais FROM syst900 WHERE tblcodtab = 3) tbl_pais
+																			ON auxpais.pais_dp = tbl_pais.nom_pais WHERE marca='X') pais_reporte
+																		ON dir2018.codigopais = pais_reporte.TBLCODARG) dir_reporte
+																	ON perdir2018.codigodireccion = dir_reporte.codigodireccion) perdir_reporte
+															ON per.codigopersona = perdir_reporte.codigopersona) persona_reporte
+														ON cc.codigopersona = persona_reporte.codigopersona) cuenta_reporte
+													ON ca.numerocuenta = cuenta_reporte.numerocuenta
+													WHERE TRUNC(fecha) <= TO_DATE('31/12/2018','DD/MM/YYYY')									--Hasta el 31/12/2018
+															AND (cuenta_reporte.tablaservicio = 101 OR cuenta_reporte.tablaservicio = 102)		--Cuentas de Ahorro y CDE
+															AND tipopersona = 1																	--Solo Personas Naturales
+													GROUP BY cuenta_reporte.codigopersona, ca.numerocuenta, cuenta_reporte.moneda, cuenta_reporte.estado, fechaapertura) maxfecha_reporte
+												ON ca.numerocuenta = maxfecha_reporte.numerocuenta AND maxfecha_reporte.maxfecha = ca.fecha) canexo_reporte
+											ON apo.numerocuenta = canexo_reporte.numerocuenta
+											GROUP BY canexo_reporte.codigopersona
+											)
+											WHERE (saldofinal >= 1000000
+													OR interestotal >= 1000000
+													OR saldopromedio >= 1000000
+													OR saldoacumulado >= 1000000
+													OR saldomaximo >= 1000000)
+						) cod2018
+						ON perdir2019.codigopersona = cod2018.codigopersona) codper2018
+					ON cc.codigopersona = codper2018.codigopersona) cuentas2018
+				ON cuentas2018.numerocuenta = ca.numerocuenta
+				WHERE TRUNC(ca.fecha) <= TO_DATE('31/12/2019','DD/MM/YYYY')
+				GROUP BY ca.numerocuenta, cuentas2018.codigopersona, cuentas2018.tablaservicio, cuentas2018.estado, cuentas2018.moneda, cuentas2018.codigodireccion, cuentas2018.codigopais) maxcuentas2018
+			ON ca.numerocuenta = maxcuentas2018.numerocuenta AND ca.fecha = maxcuentas2018.maxfecha)
 	);
