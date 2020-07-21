@@ -1,3 +1,18 @@
+
+--No domiciliadas (no Peru y en la lista de paises reportables)
+--Cuentas Nuevas del 31/12/2019
+----Personas Naturales
+----Personas Juridicas
+------Personal con el control
+--------Accionistas = CRS801
+--------Gerente General = CRS803
+
+--Cuenta AHV, CDE y CTS que perdieron dicha caracteristica --Como idendificar socios fallecidos o si ya no laboran actualmente? no se puede
+
+--Socios reportables con cuentas Preexistentes hasta el 31/12/2018
+----con de alto valor
+------"Saldo al final del periodo" o "Saldo promedio del periodo" o "Saldo Maximo del periodo" o "ABS(Abono - Cargo)" o  "Intereses acumulado no cobrados" >= 1,000,000.00
+
 SELECT DISTINCT 'OECD1' cDocTypeIndic, 'PE2019PE2011106501300001' || LPAD(ROW_NUMBER() OVER(ORDER BY numerocuenta ASC),5,'0') AS cDocRefId, numerocuenta cAccountNumber, 'OECD605' cTypeAccountNumber,
 CAST(NULL AS VARCHAR2(100)) cUndocumentedAccount, CAST(NULL AS VARCHAR2(100)) cClosedAccount, CAST(NULL AS VARCHAR2(100)) cDormantAccount, --Falta rellenar valores con el estado de la cuenta linea 41
 CASE tipopersona WHEN 1 THEN 'Individual' ELSE 'Organisation' END cTypeHolder, upper(pkg_syst900.f_obt_tbldesabr(3, codigopais)) cResCountryCode, CAST(NULL AS VARCHAR2(100)) cTIN, CAST(NULL AS VARCHAR2(100)) cTIN_IssuedBy,
@@ -9,7 +24,7 @@ pkg_personanatural.f_obt_fechacumpleanos(codigopersona) cBirthDate, CAST(NULL AS
 -- CtrlgPersonType
 CASE tipovinculo
 WHEN 1 THEN 'CRS803' --GERENTE GENERAL
-WHEN 79 THEN 'CRS803' --ACCIONISTA
+WHEN 79 THEN 'CRS801' --ACCIONISTA
 ELSE NULL
 END cCtrlgPersonType,
 

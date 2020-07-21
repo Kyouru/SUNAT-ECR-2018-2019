@@ -1,7 +1,7 @@
---Cuentas Preexistentes hasta el 31/12/2018
+--Socios reportables con cuentas Preexistentes hasta el 31/12/2018
 --Solo Personas Naturales
 --No domiciliadas (no Peru y en la lista de paises reportables)
---Cuenta AHV, CDE y CTS que perdieron dicha caracteristica
+--Cuenta AHV, CDE y CTS que perdieron dicha caracteristica --Como idendificar socios fallecidos o si ya no laboran actualmente? no se puede
 --Cuentas de alto valor
 ----"Saldo al final del periodo" o "Saldo promedio del periodo" o "Saldo Maximo del periodo" o "ABS(Abono - Cargo)" o  "Intereses acumulado no cobrados" >= 1,000,000.00
 

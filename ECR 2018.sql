@@ -1,4 +1,5 @@
---Muestra XML
+--Falta el TIN
+--Falta Tipo Cuenta
 DECLARE
 
     v_buffer varchar2(32767);
