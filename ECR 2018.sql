@@ -1,4 +1,4 @@
---Muestra XML
+--Falta TIN
 DECLARE
 
     v_buffer varchar2(32767);
