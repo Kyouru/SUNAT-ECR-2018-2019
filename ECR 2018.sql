@@ -1,5 +1,4 @@
 --Falta el TIN
---Falta Tipo Cuenta
 DECLARE
 
     v_buffer varchar2(32767);
@@ -11,14 +10,14 @@ DECLARE
     v_MessageType                   VARCHAR2(20 BYTE) := 'FATCA-CRS';
     v_Warning                       VARCHAR2(500 BYTE) := NULL;
     v_Contact                       VARCHAR2(500 BYTE) := NULL;
-    v_MessageRefId                  VARCHAR2(24 BYTE) := 'PE2018PE2011106501300001';
+    v_MessageRefId                  VARCHAR2(24 BYTE) := 'PE20182011106501300001';
     v_MessageTypeIndic              VARCHAR2(6 BYTE) := 'CRS701';
     v_ReportingPeriod               DATE := TO_DATE('2018-12-31', 'YYYY-MM-DD');
     v_Timestamp                     DATE := SYSDATE;
     
     v2_ResCountryCode                VARCHAR2(2 BYTE) := 'PE';
-    v2_TIN                           VARCHAR2(50 BYTE) := 'TIN20111065013';
-    v2_TIN_issuedBy                  VARCHAR2(2 BYTE) := 'PE';
+    v2_IN                           VARCHAR2(50 BYTE) := 'TIN20111065013';
+    v2_IN_issuedBy                  VARCHAR2(2 BYTE) := 'PE';
     v2_Name                          VARCHAR2(200 BYTE) := 'COOPERATIVA DE AHORRO Y CREDITO PACIFICO';
     v2_Name_nameType                 VARCHAR2(7 BYTE) := 'OECD202';
     v2_Address_legalAddressType      VARCHAR2(7 BYTE) := NULL;
@@ -35,7 +34,7 @@ DECLARE
     v2_DocTypeIndic                  VARCHAR2(7 BYTE) := 'OECD1';
     
     CURSOR c_accountreport IS
-    SELECT DISTINCT cDocTypeIndic, cAccountNumber, cTypeHolder, cResCountryCode, cTIN, cTIN_IssuedBy,
+    SELECT DISTINCT cDocTypeIndic, cAccountNumber, cUndocumentedAccount, cClosedAccount, cDormantAccount, cTypeHolder, cResCountryCode, cIN, cIN_IssuedBy,
             cName, cName_nameType, cFirstName, cLastName, cAddress_legalAddressType, cCountryCode,
             cAddressFree, cStreet, cBuildingIdentifier, cSuiteIdentifier, cFloorIdentifier,
             cDistrictName, cPOB, cPostCode, cCity,
@@ -45,10 +44,13 @@ DECLARE
     
     v3_DocTypeIndic                SISGODBA.ECR_ACCOUNTREPORT.cDocTypeIndic%TYPE;
     v3_AccountNumber                SISGODBA.ECR_ACCOUNTREPORT.cAccountNumber%TYPE;
+    v3_UndocumentedAccount                SISGODBA.ECR_ACCOUNTREPORT.cUndocumentedAccount%TYPE;
+    v3_ClosedAccount                SISGODBA.ECR_ACCOUNTREPORT.cClosedAccount%TYPE;
+    v3_DormantAccount                SISGODBA.ECR_ACCOUNTREPORT.cDormantAccount%TYPE;
     v3_TypeHolder               SISGODBA.ECR_ACCOUNTREPORT.cTypeHolder%TYPE;
     v3_ResCountryCode                SISGODBA.ECR_ACCOUNTREPORT.cResCountryCode%TYPE;
-    v3_TIN                SISGODBA.ECR_ACCOUNTREPORT.cTIN%TYPE;
-    v3_TIN_IssuedBy                SISGODBA.ECR_ACCOUNTREPORT.cTIN_IssuedBy%TYPE;
+    v3_IN                SISGODBA.ECR_ACCOUNTREPORT.cIN%TYPE;
+    v3_IN_IssuedBy                SISGODBA.ECR_ACCOUNTREPORT.cIN_IssuedBy%TYPE;
     v3_Name                SISGODBA.ECR_ACCOUNTREPORT.cName%TYPE;
     v3_Name_nameType                SISGODBA.ECR_ACCOUNTREPORT.cName_nameType%TYPE;
     v3_FirstName                SISGODBA.ECR_ACCOUNTREPORT.cFirstName%TYPE;
@@ -80,8 +82,8 @@ DECLARE
     
     v4_TypeHolder               SISGODBA.ECR_ACCOUNTREPORT.ccTypeHolder%TYPE;
     v4_ResCountryCode                SISGODBA.ECR_ACCOUNTREPORT.ccResCountryCode%TYPE;
-    v4_TIN                SISGODBA.ECR_ACCOUNTREPORT.ccTIN%TYPE;
-    v4_TIN_IssuedBy                SISGODBA.ECR_ACCOUNTREPORT.ccTIN_IssuedBy%TYPE;
+    v4_IN                SISGODBA.ECR_ACCOUNTREPORT.ccIN%TYPE;
+    v4_IN_IssuedBy                SISGODBA.ECR_ACCOUNTREPORT.ccIN_IssuedBy%TYPE;
     v4_Name                SISGODBA.ECR_ACCOUNTREPORT.ccName%TYPE;
     v4_Name_nameType                SISGODBA.ECR_ACCOUNTREPORT.ccName_nameType%TYPE;
     v4_FirstName                SISGODBA.ECR_ACCOUNTREPORT.ccFirstName%TYPE;
@@ -121,7 +123,7 @@ BEGIN
 	v_buffer := v_buffer || chr(9) || chr(9) || '<sfa_ftc:MessageRefId>' || v_MessageRefId || '</sfa_ftc:MessageRefId>' || chr(10);
 	v_buffer := v_buffer || chr(9) || chr(9) || '<sfa_ftc:MessageTypeIndic>' || v_MessageTypeIndic || '</sfa_ftc:MessageTypeIndic>' || chr(10);
 	v_buffer := v_buffer || chr(9) || chr(9) || '<sfa_ftc:ReportingPeriod>' || TO_CHAR(v_ReportingPeriod, 'YYYY-MM-DD') || '</sfa_ftc:ReportingPeriod>' || chr(10);
-	v_buffer := v_buffer || chr(9) || chr(9) || '<sfa_ftc:Timestamp>' || TO_CHAR(v_Timestamp, 'YYYY-MM-DD') || 'T' || TO_CHAR(v_Timestamp, 'hh24:mm:ss') || 'Z</sfa_ftc:Timestamp>' || chr(10);
+	v_buffer := v_buffer || chr(9) || chr(9) || '<sfa_ftc:Timestamp>' || TO_CHAR(v_Timestamp, 'YYYY-MM-DD') || 'T' || TO_CHAR(v_Timestamp, 'hh24:mm:ss') || '</sfa_ftc:Timestamp>' || chr(10);
 	
 	v_buffer := v_buffer || chr(9) || '</oecd_ftc:MessageHeader>' || chr(10);
 	dbms_output.put_line(v_buffer);
@@ -139,11 +141,11 @@ BEGIN
 		v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || '<sfa_ftc:ResCountryCode>' || v2_ResCountryCode || '</sfa_ftc:ResCountryCode>' || chr(10);
 	End If;
 	
-	If v2_TIN is not Null Then
-		If v2_TIN_issuedBy is not Null Then
-			v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || '<sfa_ftc:TIN issuedBy = "' || v2_TIN_issuedBy || '">' || v2_TIN || '</sfa_ftc:TIN>' || chr(10);
+	If v2_IN is not Null Then
+		If v2_IN_issuedBy is not Null Then
+			v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || '<sfa_ftc:IN issuedBy = "' || v2_IN_issuedBy || '">' || v2_IN || '</sfa_ftc:IN>' || chr(10);
 		Else
-			v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || '<sfa_ftc:TIN>' || v2_TIN || '</sfa_ftc:TIN>' || chr(10);
+			v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || '<sfa_ftc:IN>' || v2_IN || '</sfa_ftc:IN>' || chr(10);
 		End If;
 	End If;
 	
@@ -232,8 +234,9 @@ BEGIN
 
     OPEN c_accountreport;
     LOOP
-        FETCH c_accountreport INTO v3_DocTypeIndic, v3_AccountNumber, v3_TypeHolder,
-            v3_ResCountryCode, v3_TIN, v3_TIN_IssuedBy, v3_Name, v3_Name_nameType,
+        FETCH c_accountreport INTO v3_DocTypeIndic, v3_AccountNumber,
+            v3_UndocumentedAccount, v3_ClosedAccount, v3_DormantAccount, v3_TypeHolder,
+            v3_ResCountryCode, v3_IN, v3_IN_IssuedBy, v3_Name, v3_Name_nameType,
             v3_FirstName, v3_LastName, v3_Address_legalAddressType, v3_CountryCode,
             v3_AddressFree, v3_Street, v3_BuildingIdentifier, v3_SuiteIdentifier, v3_FloorIdentifier,
             v3_DistrictName, v3_POB, v3_PostCode, v3_City, v3_BirthDate, v3_BirthCity, v3_BirthCountryCode,
@@ -255,7 +258,10 @@ BEGIN
         v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || '</sfa_ftc:DocSpec>' || chr(10);
         
         If v3_AccountNumber is not Null Then
-            v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:AccountNumber>' || v3_AccountNumber || '</sfa_ftc:AccountNumber>' || chr(10);
+            v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:AccountNumber UndocumentedAccount = "' || v3_UndocumentedAccount || '" ' ||
+                                                                                                    'ClosedAccount = "' || v3_ClosedAccount || '" ' ||
+                                                                                                    'DormantAccount = "' || v3_DormantAccount || '">' ||
+                                                        v3_AccountNumber || '</sfa_ftc:AccountNumber>' || chr(10);
         End If;
         
         v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:AccountHolder>' || chr(10);
@@ -266,11 +272,11 @@ BEGIN
             v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:ResCountryCode>' || v3_ResCountryCode || '</sfa_ftc:ResCountryCode>' || chr(10);
         End If;
         
-        If v3_TIN is not Null Then
-            If v3_TIN_issuedBy is not Null Then
-                v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:TIN issuedBy = "' || v3_TIN_issuedBy || '">' || v3_TIN || '</sfa_ftc:TIN>' || chr(10);
+        If v3_IN is not Null Then
+            If v3_IN_issuedBy is not Null Then
+                v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:IN issuedBy = "' || v3_IN_issuedBy || '">' || v3_IN || '</sfa_ftc:IN>' || chr(10);
             Else
-                v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:TIN>' || v3_TIN || '</sfa_ftc:TIN>' || chr(10);
+                v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:IN>' || v3_IN || '</sfa_ftc:IN>' || chr(10);
             End If;
         End If;
         
@@ -378,7 +384,7 @@ BEGIN
         If v3_CtrlgPersonType is not Null Then
             v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:ControllingPerson>' || chr(10);
             
-            OPEN c_controllingaccount FOR 'SELECT ccTypeHolder, ccResCountryCode, ccTIN, ccTIN_IssuedBy,
+            OPEN c_controllingaccount FOR 'SELECT ccTypeHolder, ccResCountryCode, ccIN, ccIN_IssuedBy,
                 ccName, ccName_nameType, ccFirstName, ccLastName, ccAddress_legalAddressType, ccCountryCode,
                 ccAddressFree, ccStreet, ccBuildingIdentifier, ccSuiteIdentifier, ccFloorIdentifier,
                 ccDistrictName, ccPOB, ccPostCode, ccCity,
@@ -386,7 +392,7 @@ BEGIN
                 FROM SISGODBA.ECR_ACCOUNTREPORT WHERE cAccountNumber = ' || v3_AccountNumber;
             LOOP
                 FETCH c_controllingaccount INTO v4_TypeHolder,
-                    v4_ResCountryCode, v4_TIN, v4_TIN_IssuedBy, v4_Name, v4_Name_nameType,
+                    v4_ResCountryCode, v4_IN, v4_IN_IssuedBy, v4_Name, v4_Name_nameType,
                     v4_FirstName, v4_LastName, v4_Address_legalAddressType, v4_CountryCode,
                     v4_AddressFree, v4_Street, v4_BuildingIdentifier, v4_SuiteIdentifier, v4_FloorIdentifier,
                     v4_DistrictName,
@@ -399,11 +405,11 @@ BEGIN
                     v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:ResCountryCode>' || v4_ResCountryCode || '</sfa_ftc:ResCountryCode>' || chr(10);
                 End If;
                 
-                If v4_TIN is not Null Then
-                    If v4_TIN_issuedBy is not Null Then
-                        v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:TIN issuedBy = "' || v4_TIN_issuedBy || '">' || v4_TIN || '</sfa_ftc:TIN>' || chr(10);
+                If v4_IN is not Null Then
+                    If v4_IN_issuedBy is not Null Then
+                        v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:IN issuedBy = "' || v4_IN_issuedBy || '">' || v4_IN || '</sfa_ftc:IN>' || chr(10);
                     Else
-                        v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:TIN>' || v4_TIN || '</sfa_ftc:TIN>' || chr(10);
+                        v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:IN>' || v4_IN || '</sfa_ftc:IN>' || chr(10);
                     End If;
                 End If;
                 If v4_TypeHolder = 'Individual' Then
@@ -513,9 +519,9 @@ BEGIN
         
         If v3_AccountBalance is not Null Then
             If v3_AccountBalance_CurrCode is not Null Then
-                v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:AccountBalance currCode = "' || v3_AccountBalance_CurrCode ||'">' || TRIM(TO_CHAR(ROUND(v3_AccountBalance,2), '9999990,99')) || '</sfa_ftc:AccountBalance>' || chr(10);
+                v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:AccountBalance currCode = "' || v3_AccountBalance_CurrCode ||'">' || TRIM(TO_CHAR(ROUND(v3_AccountBalance,2), '9999990.99')) || '</sfa_ftc:AccountBalance>' || chr(10);
             Else
-                v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:AccountBalance>' || TRIM(TO_CHAR(ROUND(v3_AccountBalance,2), '9999990,99')) || '</sfa_ftc:AccountBalance>' || chr(10);
+                v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:AccountBalance>' || TRIM(TO_CHAR(ROUND(v3_AccountBalance,2), '9999990.99')) || '</sfa_ftc:AccountBalance>' || chr(10);
             End If;
         End If;
         
@@ -523,7 +529,7 @@ BEGIN
             v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:Payment>' || chr(10);
 
             v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:Type>' || v3_Type || '</sfa_ftc:Type>' || chr(10);
-            v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:PaymentAmnt currCode = "' || v3_PaymentAmnt_CurrCode ||'">' || TRIM(TO_CHAR(ROUND(v3_PaymentAmnt,2), '9999990,99')) || '</sfa_ftc:PaymentAmnt>' || chr(10);
+            v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa_ftc:PaymentAmnt currCode = "' || v3_PaymentAmnt_CurrCode ||'">' || TRIM(TO_CHAR(ROUND(v3_PaymentAmnt,2), '9999990.99')) || '</sfa_ftc:PaymentAmnt>' || chr(10);
             
             v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || '</sfa_ftc:Payment>' || chr(10);
         End If;
