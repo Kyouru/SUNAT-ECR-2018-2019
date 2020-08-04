@@ -1,4 +1,4 @@
---Falta el TIN
+
 DECLARE
 
     v_buffer varchar2(32767);
@@ -16,13 +16,12 @@ DECLARE
     v_Timestamp                     DATE := SYSDATE;
     
     v2_ResCountryCode                VARCHAR2(2 BYTE) := 'PE';
-    v2_IN                           VARCHAR2(50 BYTE) := 'TIN20111065013';
+    v2_IN                           VARCHAR2(50 BYTE) := '20111065013';
     v2_IN_issuedBy                  VARCHAR2(2 BYTE) := 'PE';
     v2_Name                          VARCHAR2(200 BYTE) := 'COOPERATIVA DE AHORRO Y CREDITO PACIFICO';
     v2_Name_nameType                 VARCHAR2(7 BYTE) := 'OECD202';
-    v2_Address_legalAddressType      VARCHAR2(7 BYTE) := NULL;
+    v2_Address_legalAddressType      VARCHAR2(7 BYTE) := 'OECD304';
     v2_CountryCode                   VARCHAR2(2 BYTE) := 'PE';
-    v2_AddressFree                   VARCHAR2(1000 BYTE) := 'Calle Las Orquideas Nro. 675, San Isidro, Lima';
     v2_Street                        VARCHAR2(1000 BYTE) := 'Calle Las Orquideas';
     v2_BuildingIdentifier            VARCHAR2(100 BYTE) := NULL;
     v2_SuiteIdentifier               VARCHAR2(100 BYTE) := NULL;
@@ -31,13 +30,14 @@ DECLARE
     v2_POB                           VARCHAR2(100 BYTE) := NULL;
     v2_PostCode                      VARCHAR2(100 BYTE) := '15046';
     v2_City                          VARCHAR2(100 BYTE) := 'Lima';
+    v2_AddressFree                   VARCHAR2(1000 BYTE) := 'Calle Las Orquideas Nro. 675, San Isidro, Lima';
     v2_DocTypeIndic                  VARCHAR2(7 BYTE) := 'OECD1';
     
     CURSOR c_accountreport IS
     SELECT DISTINCT cDocTypeIndic, cAccountNumber, cUndocumentedAccount, cClosedAccount, cDormantAccount, cTypeHolder, cResCountryCode, cIN, cIN_IssuedBy,
             cName, cName_nameType, cFirstName, cLastName, cAddress_legalAddressType, cCountryCode,
-            cAddressFree, cStreet, cBuildingIdentifier, cSuiteIdentifier, cFloorIdentifier,
-            cDistrictName, cPOB, cPostCode, cCity,
+            cStreet, cBuildingIdentifier, cSuiteIdentifier, cFloorIdentifier,
+            cDistrictName, cPOB, cPostCode, cCity, cAddressFree,
             cBirthDate, cBirthCity, cBirthCountryCode, cBirthFormerCountryName, cAcctHolderTypeCRS, cCtrlgPersonType,
             cAccountBalance, cAccountBalance_CurrCode, cType, cPaymentAmnt, cPaymentAmnt_currCode
      FROM SISGODBA.ECR_ACCOUNTREPORT order by cAccountNumber;
@@ -166,9 +166,6 @@ BEGIN
     If v2_CountryCode is not Null Then
         v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa:CountryCode>' || v2_CountryCode || '</sfa:CountryCode>' || chr(10);
     End If;
-    If v2_AddressFree is not Null Then
-        v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa:AddressFree>' || v2_AddressFree || '</sfa:AddressFree>' || chr(10);
-    End If;
     If v2_Street is not null or v2_BuildingIdentifier is not null or v2_SuiteIdentifier is not null or 
         v2_FloorIdentifier is not null or v2_DistrictName is not null or
         v2_POB is not null or v2_PostCode is not null or v2_City is not null
@@ -209,6 +206,9 @@ BEGIN
         
         v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || '</sfa:AddressFix>' || chr(10);
     End If;
+    If v2_AddressFree is not Null Then
+        v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || chr(9) || '<sfa:AddressFree>' || v2_AddressFree || '</sfa:AddressFree>' || chr(10);
+    End If;
     v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || '</sfa_ftc:Address>' || chr(10);
     
     v_buffer := v_buffer || chr(9) || chr(9) || chr(9) || '<sfa_ftc:DocSpec>' || chr(10);
@@ -238,8 +238,8 @@ BEGIN
             v3_UndocumentedAccount, v3_ClosedAccount, v3_DormantAccount, v3_TypeHolder,
             v3_ResCountryCode, v3_IN, v3_IN_IssuedBy, v3_Name, v3_Name_nameType,
             v3_FirstName, v3_LastName, v3_Address_legalAddressType, v3_CountryCode,
-            v3_AddressFree, v3_Street, v3_BuildingIdentifier, v3_SuiteIdentifier, v3_FloorIdentifier,
-            v3_DistrictName, v3_POB, v3_PostCode, v3_City, v3_BirthDate, v3_BirthCity, v3_BirthCountryCode,
+            v3_Street, v3_BuildingIdentifier, v3_SuiteIdentifier, v3_FloorIdentifier,
+            v3_DistrictName, v3_POB, v3_PostCode, v3_City, v3_AddressFree, v3_BirthDate, v3_BirthCity, v3_BirthCountryCode,
             v3_BirthFormerCountryName, v3_AcctHolderTypeCRS, v3_CtrlgPersonType,
             v3_AccountBalance, v3_AccountBalance_CurrCode, v3_Type,
             v3_PaymentAmnt, v3_PaymentAmnt_currCode;

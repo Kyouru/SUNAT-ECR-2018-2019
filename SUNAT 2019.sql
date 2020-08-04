@@ -7,19 +7,18 @@ SELECT DISTINCT 'OECD1' cDocTypeIndic,
 		numerocuenta cAccountNumber,
 		'OECD605' cTypeAccountNumber,
 		'FALSE' cUndocumentedAccount,
-		CASE estado WHEN 3 THEN 'TRUE' ELSE 'FALSE' END cClosedAccount,
-		'FALSE' cDormantAccount,
+		CASE estado WHEN 3 THEN 'TRUE' WHEN 2 THEN 'TRUE' ELSE 'FALSE' END cClosedAccount,
+		CASE estado WHEN 4 THEN 'TRUE' ELSE 'FALSE' END cDormantAccount,
 		CASE tipopersona WHEN 1 THEN 'Individual' ELSE 'Organisation' END cTypeHolder,
 		UPPER(pkg_syst900.f_obt_tbldesabr(3, codigopais)) cResCountryCode,
-		CAST(NULL AS VARCHAR2(100)) cIN,
-		CAST(NULL AS VARCHAR2(100)) cIN_IssuedBy,
+		CASE tipopersona WHEN 1 THEN pkg_personanatural.f_obt_numerodocumentoid(codigopersona) ELSE TO_CHAR(pkg_persona.f_obt_numeroruc(codigopersona)) END cIN,
+		CASE tipopersona WHEN 1 THEN (CASE pkg_personanatural.f_obt_tipodocumentoid(codigopersona) WHEN 1 THEN 'PE' ELSE CAST(NULL AS VARCHAR2(100)) END) ELSE (CASE pkg_persona.f_obt_numeroruc(codigopersona) WHEN NULL THEN CAST(NULL AS VARCHAR2(100)) ELSE 'PE' END) END cIN_IssuedBy,
 		TRANSLATE(bd_nombrecompleto(codigopersona), '&', 'Y') cName,
-		CASE tipopersona WHEN 2 THEN 'OECD207' ELSE CAST(NULL AS VARCHAR2(10)) END cName_nameType,
+		CASE tipopersona WHEN 2 THEN 'OECD207' ELSE 'OECD202' END cName_nameType,
 		TRIM(pkg_personanatural.f_obt_nombres(codigopersona)) cFirstName,
 		TRIM(TRIM(pkg_personanatural.f_obt_apellidopaterno(codigopersona)) || ' ' || TRIM(pkg_personanatural.f_obt_apellidomaterno(codigopersona))) cLastName,
 		'OECD304' cAddress_legalAddressType,
 		UPPER(pkg_syst900.f_obt_tbldesabr(3, codigopais)) cCountryCode,
-		TRIM(direccion) cAddressFree,
 		CAST(NULL AS VARCHAR2(100)) cStreet,
 		CAST(NULL AS VARCHAR2(100)) cBuildingIdentifier,
 		CAST(NULL AS VARCHAR2(100)) cSuiteIdentifier,
@@ -28,23 +27,30 @@ SELECT DISTINCT 'OECD1' cDocTypeIndic,
 		CAST(NULL AS VARCHAR2(100)) cPOB,
 		CAST(NULL AS VARCHAR2(100)) cPostCode,
 		CAST(NULL AS VARCHAR2(100)) cCity,
+		TRIM(direccion) cAddressFree,
 		pkg_personanatural.f_obt_fechacumpleanos(codigopersona) cBirthDate,
 		CAST(NULL AS VARCHAR2(100)) cBirthCity,
 		UPPER(pkg_syst900.f_obt_tbldesabr(3, pkg_personanatural.f_obt_lugarnacimiento(codigopersona))) cBirthCountryCode,
 		CAST(NULL AS VARCHAR2(100)) cBirthFormerCountryName,
-		CASE tipopersona WHEN 2 THEN 'CRS101' ELSE NULL END cAcctHolderTypeCRS,
-		CASE tipovinculo WHEN 1 THEN 'CRS803' WHEN 79 THEN 'CRS801' ELSE NULL END cCtrlgPersonType, --Accionestas y Gerente General
+		CASE tipopersona WHEN 2 THEN 'CRS101' ELSE CAST(NULL AS VARCHAR2(100)) END cAcctHolderTypeCRS,
+		CASE tipovinculo WHEN 1 THEN 'CRS803' WHEN 79 THEN 'CRS801' ELSE CAST(NULL AS VARCHAR2(100)) END cCtrlgPersonType, --Accionestas y Gerente General
 		CASE WHEN moneda = 1 THEN salcon_soles + intcon_soles ELSE salcon_dolares + intcon_dolares END cAccountBalance,
 		CASE WHEN moneda = 1 THEN 'PEN' ELSE 'USD' END cAccountBalance_CurrCode,
 		'CRS502' cType, --Intereses
 		CASE WHEN moneda = 1 THEN intcon_soles ELSE intcon_dolares END cPaymentAmnt,
 		CASE WHEN moneda = 1 THEN 'PEN' ELSE 'USD' END cPaymentAmnt_currCode,
-		CASE pkg_persona.f_obt_tipopersona(personavinculada) WHEN 1 THEN 'Individual' WHEN 2 THEN 'Organisation' ELSE NULL END ccTypeHolder,
+		CASE pkg_persona.f_obt_tipopersona(personavinculada) WHEN 1 THEN 'Individual' WHEN 2 THEN 'Organisation' ELSE CAST(NULL AS VARCHAR2(100)) END ccTypeHolder,
 		UPPER(pkg_syst900.f_obt_tbldesabr(3, codigopaisvinculo)) ccResCountryCode,
-		CAST(NULL AS VARCHAR2(100)) ccIN,
-		CAST(NULL AS VARCHAR2(100)) ccIN_IssuedBy,
+		CASE pkg_persona.f_obt_tipopersona(personavinculada) WHEN 1 THEN pkg_personanatural.f_obt_numerodocumentoid(personavinculada) ELSE TO_CHAR(pkg_persona.f_obt_numeroruc(personavinculada)) END ccIN,
+		CASE personavinculada
+			WHEN 1 THEN
+                (CASE pkg_persona.f_obt_tipopersona(personavinculada) WHEN 1 THEN (CASE pkg_personanatural.f_obt_tipodocumentoid(personavinculada) WHEN 1 THEN 'PE' ELSE CAST(NULL AS VARCHAR2(100)) END) ELSE (CASE pkg_persona.f_obt_numeroruc(personavinculada) WHEN NULL THEN CAST(NULL AS VARCHAR2(100)) ELSE 'PE' END) END)
+            WHEN 79 THEN
+                (CASE pkg_persona.f_obt_tipopersona(personavinculada) WHEN 1 THEN (CASE pkg_personanatural.f_obt_tipodocumentoid(personavinculada) WHEN 1 THEN 'PE' ELSE CAST(NULL AS VARCHAR2(100)) END) ELSE (CASE pkg_persona.f_obt_numeroruc(personavinculada) WHEN NULL THEN CAST(NULL AS VARCHAR2(100)) ELSE 'PE' END) END)
+            ELSE CAST(NULL AS VARCHAR2(100))
+        END ccIN_IssuedBy,
 		TRANSLATE(bd_nombrecompleto(personavinculada), '&', 'Y') ccName,
-		CASE pkg_persona.f_obt_tipopersona(personavinculada) WHEN 2 THEN 'OECD207' ELSE NULL END ccName_nameType,
+		CASE pkg_persona.f_obt_tipopersona(personavinculada) WHEN 2 THEN 'OECD207' ELSE 'OECD202' END ccName_nameType,
 		TRIM(pkg_personanatural.f_obt_nombres(personavinculada)) ccFirstName,
 		TRIM(TRIM(pkg_personanatural.f_obt_apellidopaterno(personavinculada)) || ' ' || TRIM(pkg_personanatural.f_obt_apellidomaterno(personavinculada))) ccLastName,
 		CAST(NULL AS VARCHAR2(100)) ccAddress_legalAddressType,
@@ -91,7 +97,7 @@ FROM (
 			pjv.tipovinculo,
 
 			--pjv.codigodireccion,
-			CASE WHEN pjv.tipovinculo IS NOT NULL THEN
+			CASE WHEN pjv.codigodireccion IS NOT NULL THEN
 				pkg_direccion.f_obt_tipovia(pjv.codigodireccion)||' '||TRIM(pkg_direccion.f_obt_callenumero(pjv.codigodireccion))||'  '||
 				DECODE(TRIM(pkg_direccion.f_obt_numeropuerta(pjv.codigodireccion)),NULL,NULL,'Nro.:'||TRIM(pkg_direccion.f_obt_numeropuerta(pjv.codigodireccion)))||' '||
 				DECODE(TRIM(pkg_direccion.f_obt_manzana(pjv.codigodireccion)),NULL,NULL,'Mz.:'||' '||TRIM(pkg_direccion.f_obt_manzana(pjv.codigodireccion)))||' '||
@@ -210,32 +216,31 @@ FROM (
 
 	UNION ALL
 
-
 	--Cuentas Preexistentes hasta el 31/12/2018
 	SELECT	maxfecha_reporte.numerocuenta,
-				maxfecha_reporte.codigopersona,
-				maxfecha_reporte.tablaservicio,
-				maxfecha_reporte.tipopersona,
-				--maxfecha_reporte.codigodireccion
-					pkg_direccion.f_obt_tipovia(maxfecha_reporte.codigodireccion)||' '||TRIM(pkg_direccion.f_obt_callenumero(maxfecha_reporte.codigodireccion))||'  '||
-					DECODE(TRIM(pkg_direccion.f_obt_numeropuerta(maxfecha_reporte.codigodireccion)),NULL,NULL,'Nro.:'||TRIM(pkg_direccion.f_obt_numeropuerta(maxfecha_reporte.codigodireccion)))||' '||
-					DECODE(TRIM(pkg_direccion.f_obt_manzana(maxfecha_reporte.codigodireccion)),NULL,NULL,'Mz.:'||' '||TRIM(pkg_direccion.f_obt_manzana(maxfecha_reporte.codigodireccion)))||' '||
-					DECODE(TRIM(pkg_direccion.f_obt_lote(maxfecha_reporte.codigodireccion)),NULL,NULL,'Lt.:'||' '||TRIM(pkg_direccion.f_obt_lote(maxfecha_reporte.codigodireccion)))||' '|| 
-					DECODE(TRIM(pkg_direccion.f_obt_referencia(maxfecha_reporte.codigodireccion)),NULL,NULL,'Referencia :'||TRIM(pkg_direccion.f_obt_referencia(maxfecha_reporte.codigodireccion)))||' *** '|| 
-					UPPER(pkg_direccion.f_obt_descdepartamento(maxfecha_reporte.codigodireccion))||' - '||
-					UPPER(pkg_direccion.f_obt_descprovincia(maxfecha_reporte.codigodireccion))||' - '||
-					UPPER(pkg_direccion.f_obt_descdistrito(maxfecha_reporte.codigodireccion)) AS direccion,
-				maxfecha_reporte.codigopais,
-				maxfecha_reporte.estado,
-				maxfecha_reporte.moneda,
-				CASE WHEN maxfecha_reporte.moneda = 1 THEN ca.saldoimporte1 ELSE ca.saldoimporte1 * GEN05200('31/12/2019', 3, 3) END AS salcon_soles,
-				CASE WHEN maxfecha_reporte.moneda = 2 THEN ca.saldoimporte1 ELSE ca.saldoimporte1 / GEN05200('31/12/2019', 3, 3) END AS salcon_dolares,
-				CASE WHEN maxfecha_reporte.moneda = 1 THEN ca.interestotal ELSE ca.interestotal * GEN05200('31/12/2019', 3, 3) END AS intcon_soles,
-				CASE WHEN maxfecha_reporte.moneda = 2 THEN ca.interestotal ELSE ca.interestotal / GEN05200('31/12/2019', 3, 3) END AS intcon_dolares,
-				NULL AS personavinculada,
-				NULL AS tipovinculo,
-				NULL AS direccionvinculo,
-				NULL AS codigopaisvinculo
+			maxfecha_reporte.codigopersona,
+			maxfecha_reporte.tablaservicio,
+			maxfecha_reporte.tipopersona,
+			--maxfecha_reporte.codigodireccion
+				pkg_direccion.f_obt_tipovia(maxfecha_reporte.codigodireccion)||' '||TRIM(pkg_direccion.f_obt_callenumero(maxfecha_reporte.codigodireccion))||'  '||
+				DECODE(TRIM(pkg_direccion.f_obt_numeropuerta(maxfecha_reporte.codigodireccion)),NULL,NULL,'Nro.:'||TRIM(pkg_direccion.f_obt_numeropuerta(maxfecha_reporte.codigodireccion)))||' '||
+				DECODE(TRIM(pkg_direccion.f_obt_manzana(maxfecha_reporte.codigodireccion)),NULL,NULL,'Mz.:'||' '||TRIM(pkg_direccion.f_obt_manzana(maxfecha_reporte.codigodireccion)))||' '||
+				DECODE(TRIM(pkg_direccion.f_obt_lote(maxfecha_reporte.codigodireccion)),NULL,NULL,'Lt.:'||' '||TRIM(pkg_direccion.f_obt_lote(maxfecha_reporte.codigodireccion)))||' '|| 
+				DECODE(TRIM(pkg_direccion.f_obt_referencia(maxfecha_reporte.codigodireccion)),NULL,NULL,'Referencia :'||TRIM(pkg_direccion.f_obt_referencia(maxfecha_reporte.codigodireccion)))||' *** '|| 
+				UPPER(pkg_direccion.f_obt_descdepartamento(maxfecha_reporte.codigodireccion))||' - '||
+				UPPER(pkg_direccion.f_obt_descprovincia(maxfecha_reporte.codigodireccion))||' - '||
+				UPPER(pkg_direccion.f_obt_descdistrito(maxfecha_reporte.codigodireccion)) AS direccion,
+			maxfecha_reporte.codigopais,
+			maxfecha_reporte.estado,
+			maxfecha_reporte.moneda,
+			CASE WHEN maxfecha_reporte.moneda = 1 THEN ca.saldoimporte1 ELSE ca.saldoimporte1 * GEN05200('31/12/2019', 3, 3) END AS salcon_soles,
+			CASE WHEN maxfecha_reporte.moneda = 2 THEN ca.saldoimporte1 ELSE ca.saldoimporte1 / GEN05200('31/12/2019', 3, 3) END AS salcon_dolares,
+			CASE WHEN maxfecha_reporte.moneda = 1 THEN ca.interestotal ELSE ca.interestotal * GEN05200('31/12/2019', 3, 3) END AS intcon_soles,
+			CASE WHEN maxfecha_reporte.moneda = 2 THEN ca.interestotal ELSE ca.interestotal / GEN05200('31/12/2019', 3, 3) END AS intcon_dolares,
+			NULL AS personavinculada,
+			NULL AS tipovinculo,
+			NULL AS direccionvinculo,
+			NULL AS codigopaisvinculo
 		FROM captacionanexo ca
 		INNER JOIN (SELECT ca.numerocuenta,
 							cuenta_reporte.moneda,
@@ -310,16 +315,16 @@ FROM (
 					) maxfecha_reporte
 		ON ca.numerocuenta = maxfecha_reporte.numerocuenta
 			AND maxfecha_reporte.maxfecha = ca.fecha
-		INNER JOIN	 			(SELECT canexo_reporte.codigopersona,
-										--apo.numerocuenta,
-										--canexo_reporte.moneda,
-										--canexo_reporte.estado,
-										--canexo_reporte.saldopromedio,
-										--apo.saldoacumulado,
-										--apo.saldomaximo,
-										--canexo_reporte.saldofinal,
-										--canexo_reporte.interestotal
-								FROM 
+		INNER JOIN	 		(SELECT canexo_reporte.codigopersona
+									--apo.numerocuenta,
+									--canexo_reporte.moneda,
+									--canexo_reporte.estado,
+									--canexo_reporte.saldopromedio,
+									--apo.saldoacumulado,
+									--apo.saldomaximo,
+									--canexo_reporte.saldofinal,
+									--canexo_reporte.interestotal
+							FROM 
 
 								-- SALDOACUMULADO SALDOMAXIMO de la tabla APORTES
 								(SELECT	apo.numerocuenta,
@@ -407,7 +412,8 @@ FROM (
 									) maxfecha_reporte
 								ON maxfecha_reporte.numerocuenta = apo.numerocuenta
 								WHERE TRUNC(apo.fechamovimiento) <= TO_DATE('31/12/2018','DD/MM/YYYY')
-								GROUP BY apo.numerocuenta) apo
+								GROUP BY apo.numerocuenta
+								) apo
 								INNER JOIN
 
 								--SALDOFINAL SALDOPROMEDIO INTERESTOTAL de la tabla CAPTACIONANEXO
@@ -497,8 +503,6 @@ FROM (
 										OR saldoacumulado >= 1000000
 										OR saldomaximo >= 1000000
 										)
-								) cuentas2018
-							ON cuentas2018.codigopersona = cc.codigopersona
 							) cc2018
-	ON ca.numerocuenta = cc2018.numerocuenta 
+	ON maxfecha_reporte.codigopersona = cc2018.codigopersona 
 	) ORDER BY cDocRefId;
