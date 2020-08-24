@@ -72,10 +72,10 @@ FROM (
 					DECODE(TRIM(numeropuerta),NULL,NULL,'Nro.:'||TRIM(numeropuerta))||' '||
 					DECODE(TRIM(manzana),NULL,NULL,'Mz.:'||' '||TRIM(manzana))||' '||
 					DECODE(TRIM(lote),NULL,NULL,'Lt.:'||' '||TRIM(lote))||' '|| 
-					DECODE(TRIM(preferencia),NULL,NULL,'Referencia :'||TRIM(referencia))||' *** '|| 
-					UPPER(descdepartamento)||' - '||
-					UPPER(descprovincia)||' - '||
-					UPPER(descdistrito)
+					DECODE(TRIM(referencia),NULL,NULL,'Referencia :'||TRIM(referencia))||' *** '|| 
+					UPPER(pkg_syst090.f_obt_descdepartamento(codigoregion, codigodepartamento))||' - '||
+					UPPER(pkg_syst090.f_obt_descprovincia(codigoregion, codigodepartamento, codigoprovincia ))||' - '||
+					UPPER(pkg_syst090.f_obt_descdistrito(codigoregion, codigodepartamento, codigoprovincia, codigodistrito ))
 					FROM direccion_20181231 where codigodireccion = maxfecha_reporte.codigodireccion) AS direccion,
 				maxfecha_reporte.codigopais,
 				maxfecha_reporte.estado,

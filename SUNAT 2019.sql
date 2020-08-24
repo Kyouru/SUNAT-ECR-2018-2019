@@ -81,10 +81,10 @@ FROM (
 				DECODE(TRIM(numeropuerta),NULL,NULL,'Nro.:'||TRIM(numeropuerta))||' '||
 				DECODE(TRIM(manzana),NULL,NULL,'Mz.:'||' '||TRIM(manzana))||' '||
 				DECODE(TRIM(lote),NULL,NULL,'Lt.:'||' '||TRIM(lote))||' '|| 
-				DECODE(TRIM(preferencia),NULL,NULL,'Referencia :'||TRIM(referencia))||' *** '|| 
-				UPPER(descdepartamento)||' - '||
-				UPPER(descprovincia)||' - '||
-				UPPER(descdistrito)
+				DECODE(TRIM(referencia),NULL,NULL,'Referencia :'||TRIM(referencia))||' *** '|| 
+				UPPER(pkg_syst090.f_obt_descdepartamento(codigoregion, codigodepartamento))||' - '||
+				UPPER(pkg_syst090.f_obt_descprovincia(codigoregion, codigodepartamento, codigoprovincia ))||' - '||
+				UPPER(pkg_syst090.f_obt_descdistrito(codigoregion, codigodepartamento, codigoprovincia, codigodistrito ))
 				FROM direccion_20191231 where codigodireccion = cta_max_reporte.codigodireccion) AS direccion,
 
 			cta_max_reporte.codigopais,
@@ -103,11 +103,11 @@ FROM (
 				DECODE(TRIM(numeropuerta),NULL,NULL,'Nro.:'||TRIM(numeropuerta))||' '||
 				DECODE(TRIM(manzana),NULL,NULL,'Mz.:'||' '||TRIM(manzana))||' '||
 				DECODE(TRIM(lote),NULL,NULL,'Lt.:'||' '||TRIM(lote))||' '|| 
-				DECODE(TRIM(preferencia),NULL,NULL,'Referencia :'||TRIM(referencia))||' *** '|| 
-				UPPER(descdepartamento)||' - '||
-				UPPER(descprovincia)||' - '||
-				UPPER(descdistrito)
-				FROM direccion_20191231 where codigodireccion = pjv.codigodireccion)
+				DECODE(TRIM(referencia),NULL,NULL,'Referencia :'||TRIM(referencia))||' *** '|| 
+				UPPER(pkg_syst090.f_obt_descdepartamento(codigoregion, codigodepartamento))||' - '||
+				UPPER(pkg_syst090.f_obt_descprovincia(codigoregion, codigodepartamento, codigoprovincia ))||' - '||
+				UPPER(pkg_syst090.f_obt_descdistrito(codigoregion, codigodepartamento, codigoprovincia, codigodistrito ))
+				FROM direccion_20191231 where codigodireccion = cta_max_reporte.codigodireccion)
 				ELSE CAST(NULL AS VARCHAR2(100)) END AS direccionvinculo,
 
 			pkg_direccion.f_obt_codigopais(pjv.codigodireccion) AS codigopaisvinculo
@@ -225,14 +225,14 @@ FROM (
 			maxfecha_reporte.tipopersona,
 			--maxfecha_reporte.codigodireccion
 				(SELECT tipovia||' '||TRIM(callenumero)||'  '||
-				DECODE(TRIM(numeropuerta),NULL,NULL,'Nro.:'||TRIM(numeropuerta))||' '||
-				DECODE(TRIM(manzana),NULL,NULL,'Mz.:'||' '||TRIM(manzana))||' '||
-				DECODE(TRIM(lote),NULL,NULL,'Lt.:'||' '||TRIM(lote))||' '|| 
-				DECODE(TRIM(preferencia),NULL,NULL,'Referencia :'||TRIM(referencia))||' *** '|| 
-				UPPER(descdepartamento)||' - '||
-				UPPER(descprovincia)||' - '||
-				UPPER(descdistrito)
-				FROM direccion_20191231 where codigodireccion = maxfecha_reporte.codigodireccion) AS direccion,
+					DECODE(TRIM(numeropuerta),NULL,NULL,'Nro.:'||TRIM(numeropuerta))||' '||
+					DECODE(TRIM(manzana),NULL,NULL,'Mz.:'||' '||TRIM(manzana))||' '||
+					DECODE(TRIM(lote),NULL,NULL,'Lt.:'||' '||TRIM(lote))||' '|| 
+					DECODE(TRIM(referencia),NULL,NULL,'Referencia :'||TRIM(referencia))||' *** '|| 
+					UPPER(pkg_syst090.f_obt_descdepartamento(codigoregion, codigodepartamento))||' - '||
+					UPPER(pkg_syst090.f_obt_descprovincia(codigoregion, codigodepartamento, codigoprovincia ))||' - '||
+					UPPER(pkg_syst090.f_obt_descdistrito(codigoregion, codigodepartamento, codigoprovincia, codigodistrito ))
+					FROM direccion_20181231 where codigodireccion = maxfecha_reporte.codigodireccion) AS direccion,
 			maxfecha_reporte.codigopais,
 			maxfecha_reporte.estado,
 			maxfecha_reporte.moneda,
