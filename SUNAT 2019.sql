@@ -77,14 +77,15 @@ FROM (
 			cta_max_reporte.tipopersona,
 
 			--reporte.codigodireccion,
-			pkg_direccion.f_obt_tipovia(cta_max_reporte.codigodireccion)||' '||TRIM(pkg_direccion.f_obt_callenumero(cta_max_reporte.codigodireccion))||'  '||
-			DECODE(TRIM(pkg_direccion.f_obt_numeropuerta(cta_max_reporte.codigodireccion)),NULL,NULL,'Nro.:'||TRIM(pkg_direccion.f_obt_numeropuerta(cta_max_reporte.codigodireccion)))||' '||
-			DECODE(TRIM(pkg_direccion.f_obt_manzana(cta_max_reporte.codigodireccion)),NULL,NULL,'Mz.:'||' '||TRIM(pkg_direccion.f_obt_manzana(cta_max_reporte.codigodireccion)))||' '||
-			DECODE(TRIM(pkg_direccion.f_obt_lote(cta_max_reporte.codigodireccion)),NULL,NULL,'Lt.:'||' '||TRIM(pkg_direccion.f_obt_lote(cta_max_reporte.codigodireccion)))||' '|| 
-			DECODE(TRIM(pkg_direccion.f_obt_referencia(cta_max_reporte.codigodireccion)),NULL,NULL,'Referencia :'||TRIM(pkg_direccion.f_obt_referencia(cta_max_reporte.codigodireccion)))||' *** '|| 
-			UPPER(pkg_direccion.f_obt_descdepartamento(cta_max_reporte.codigodireccion))||' - '||
-			UPPER(pkg_direccion.f_obt_descprovincia(cta_max_reporte.codigodireccion))||' - '||
-			UPPER(pkg_direccion.f_obt_descdistrito(cta_max_reporte.codigodireccion)) AS direccion,
+			(SELECT tipovia||' '||TRIM(callenumero)||'  '||
+				DECODE(TRIM(numeropuerta),NULL,NULL,'Nro.:'||TRIM(numeropuerta))||' '||
+				DECODE(TRIM(manzana),NULL,NULL,'Mz.:'||' '||TRIM(manzana))||' '||
+				DECODE(TRIM(lote),NULL,NULL,'Lt.:'||' '||TRIM(lote))||' '|| 
+				DECODE(TRIM(preferencia),NULL,NULL,'Referencia :'||TRIM(referencia))||' *** '|| 
+				UPPER(descdepartamento)||' - '||
+				UPPER(descprovincia)||' - '||
+				UPPER(descdistrito)
+				FROM direccion_20191231 where codigodireccion = cta_max_reporte.codigodireccion) AS direccion,
 
 			cta_max_reporte.codigopais,
 			cta_max_reporte.estado,
@@ -98,15 +99,16 @@ FROM (
 
 			--pjv.codigodireccion,
 			CASE WHEN pjv.codigodireccion IS NOT NULL THEN
-				pkg_direccion.f_obt_tipovia(pjv.codigodireccion)||' '||TRIM(pkg_direccion.f_obt_callenumero(pjv.codigodireccion))||'  '||
-				DECODE(TRIM(pkg_direccion.f_obt_numeropuerta(pjv.codigodireccion)),NULL,NULL,'Nro.:'||TRIM(pkg_direccion.f_obt_numeropuerta(pjv.codigodireccion)))||' '||
-				DECODE(TRIM(pkg_direccion.f_obt_manzana(pjv.codigodireccion)),NULL,NULL,'Mz.:'||' '||TRIM(pkg_direccion.f_obt_manzana(pjv.codigodireccion)))||' '||
-				DECODE(TRIM(pkg_direccion.f_obt_lote(pjv.codigodireccion)),NULL,NULL,'Lt.:'||' '||TRIM(pkg_direccion.f_obt_lote(pjv.codigodireccion)))||' '|| 
-				DECODE(TRIM(pkg_direccion.f_obt_referencia(pjv.codigodireccion)),NULL,NULL,'Referencia :'||TRIM(pkg_direccion.f_obt_referencia(pjv.codigodireccion)))||' *** '|| 
-				UPPER(pkg_direccion.f_obt_descdepartamento(pjv.codigodireccion))||' - '||
-				UPPER(pkg_direccion.f_obt_descprovincia(pjv.codigodireccion))||' - '||
-				UPPER(pkg_direccion.f_obt_descdistrito(pjv.codigodireccion))
-				ELSE NULL END AS direccionvinculo,
+				(SELECT tipovia||' '||TRIM(callenumero)||'  '||
+				DECODE(TRIM(numeropuerta),NULL,NULL,'Nro.:'||TRIM(numeropuerta))||' '||
+				DECODE(TRIM(manzana),NULL,NULL,'Mz.:'||' '||TRIM(manzana))||' '||
+				DECODE(TRIM(lote),NULL,NULL,'Lt.:'||' '||TRIM(lote))||' '|| 
+				DECODE(TRIM(preferencia),NULL,NULL,'Referencia :'||TRIM(referencia))||' *** '|| 
+				UPPER(descdepartamento)||' - '||
+				UPPER(descprovincia)||' - '||
+				UPPER(descdistrito)
+				FROM direccion_20191231 where codigodireccion = pjv.codigodireccion)
+				ELSE CAST(NULL AS VARCHAR2(100)) END AS direccionvinculo,
 
 			pkg_direccion.f_obt_codigopais(pjv.codigodireccion) AS codigopaisvinculo
 	FROM 
@@ -222,14 +224,15 @@ FROM (
 			maxfecha_reporte.tablaservicio,
 			maxfecha_reporte.tipopersona,
 			--maxfecha_reporte.codigodireccion
-				pkg_direccion.f_obt_tipovia(maxfecha_reporte.codigodireccion)||' '||TRIM(pkg_direccion.f_obt_callenumero(maxfecha_reporte.codigodireccion))||'  '||
-				DECODE(TRIM(pkg_direccion.f_obt_numeropuerta(maxfecha_reporte.codigodireccion)),NULL,NULL,'Nro.:'||TRIM(pkg_direccion.f_obt_numeropuerta(maxfecha_reporte.codigodireccion)))||' '||
-				DECODE(TRIM(pkg_direccion.f_obt_manzana(maxfecha_reporte.codigodireccion)),NULL,NULL,'Mz.:'||' '||TRIM(pkg_direccion.f_obt_manzana(maxfecha_reporte.codigodireccion)))||' '||
-				DECODE(TRIM(pkg_direccion.f_obt_lote(maxfecha_reporte.codigodireccion)),NULL,NULL,'Lt.:'||' '||TRIM(pkg_direccion.f_obt_lote(maxfecha_reporte.codigodireccion)))||' '|| 
-				DECODE(TRIM(pkg_direccion.f_obt_referencia(maxfecha_reporte.codigodireccion)),NULL,NULL,'Referencia :'||TRIM(pkg_direccion.f_obt_referencia(maxfecha_reporte.codigodireccion)))||' *** '|| 
-				UPPER(pkg_direccion.f_obt_descdepartamento(maxfecha_reporte.codigodireccion))||' - '||
-				UPPER(pkg_direccion.f_obt_descprovincia(maxfecha_reporte.codigodireccion))||' - '||
-				UPPER(pkg_direccion.f_obt_descdistrito(maxfecha_reporte.codigodireccion)) AS direccion,
+				(SELECT tipovia||' '||TRIM(callenumero)||'  '||
+				DECODE(TRIM(numeropuerta),NULL,NULL,'Nro.:'||TRIM(numeropuerta))||' '||
+				DECODE(TRIM(manzana),NULL,NULL,'Mz.:'||' '||TRIM(manzana))||' '||
+				DECODE(TRIM(lote),NULL,NULL,'Lt.:'||' '||TRIM(lote))||' '|| 
+				DECODE(TRIM(preferencia),NULL,NULL,'Referencia :'||TRIM(referencia))||' *** '|| 
+				UPPER(descdepartamento)||' - '||
+				UPPER(descprovincia)||' - '||
+				UPPER(descdistrito)
+				FROM direccion_20191231 where codigodireccion = maxfecha_reporte.codigodireccion) AS direccion,
 			maxfecha_reporte.codigopais,
 			maxfecha_reporte.estado,
 			maxfecha_reporte.moneda,

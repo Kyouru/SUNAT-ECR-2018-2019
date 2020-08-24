@@ -62,21 +62,21 @@ SELECT DISTINCT 'OECD1' cDocTypeIndic,
 		CAST(NULL AS VARCHAR2(100)) ccBirthCity,
 		UPPER(pkg_syst900.f_obt_tbldesabr(3, pkg_personanatural.f_obt_lugarnacimiento(personavinculada))) ccBirthCountryCode,
 		CAST(NULL AS VARCHAR2(100)) ccBirthFormerCountryName
-
 FROM (
 		SELECT	maxfecha_reporte.numerocuenta,
 				maxfecha_reporte.codigopersona,
 				maxfecha_reporte.tablaservicio,
 				maxfecha_reporte.tipopersona,
 				--maxfecha_reporte.codigodireccion
-					pkg_direccion.f_obt_tipovia(maxfecha_reporte.codigodireccion)||' '||TRIM(pkg_direccion.f_obt_callenumero(maxfecha_reporte.codigodireccion))||'  '||
-					DECODE(TRIM(pkg_direccion.f_obt_numeropuerta(maxfecha_reporte.codigodireccion)),NULL,NULL,'Nro.:'||TRIM(pkg_direccion.f_obt_numeropuerta(maxfecha_reporte.codigodireccion)))||' '||
-					DECODE(TRIM(pkg_direccion.f_obt_manzana(maxfecha_reporte.codigodireccion)),NULL,NULL,'Mz.:'||' '||TRIM(pkg_direccion.f_obt_manzana(maxfecha_reporte.codigodireccion)))||' '||
-					DECODE(TRIM(pkg_direccion.f_obt_lote(maxfecha_reporte.codigodireccion)),NULL,NULL,'Lt.:'||' '||TRIM(pkg_direccion.f_obt_lote(maxfecha_reporte.codigodireccion)))||' '|| 
-					DECODE(TRIM(pkg_direccion.f_obt_referencia(maxfecha_reporte.codigodireccion)),NULL,NULL,'Referencia :'||TRIM(pkg_direccion.f_obt_referencia(maxfecha_reporte.codigodireccion)))||' *** '|| 
-					UPPER(pkg_direccion.f_obt_descdepartamento(maxfecha_reporte.codigodireccion))||' - '||
-					UPPER(pkg_direccion.f_obt_descprovincia(maxfecha_reporte.codigodireccion))||' - '||
-					UPPER(pkg_direccion.f_obt_descdistrito(maxfecha_reporte.codigodireccion)) AS direccion,
+					(SELECT tipovia||' '||TRIM(callenumero)||'  '||
+					DECODE(TRIM(numeropuerta),NULL,NULL,'Nro.:'||TRIM(numeropuerta))||' '||
+					DECODE(TRIM(manzana),NULL,NULL,'Mz.:'||' '||TRIM(manzana))||' '||
+					DECODE(TRIM(lote),NULL,NULL,'Lt.:'||' '||TRIM(lote))||' '|| 
+					DECODE(TRIM(preferencia),NULL,NULL,'Referencia :'||TRIM(referencia))||' *** '|| 
+					UPPER(descdepartamento)||' - '||
+					UPPER(descprovincia)||' - '||
+					UPPER(descdistrito)
+					FROM direccion_20181231 where codigodireccion = maxfecha_reporte.codigodireccion) AS direccion,
 				maxfecha_reporte.codigopais,
 				maxfecha_reporte.estado,
 				maxfecha_reporte.moneda,
